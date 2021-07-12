@@ -13,8 +13,13 @@ import { calendarScreen } from "./CalendarScreen.module.scss";
 import { DeleteEventFab } from "../ui/deleteEventFab/DeleteEventFab";
 import { messages } from "../../helpers/calendar-messages-es";
 import { Navbar } from "../ui/navbar/Navbar";
-import { clearActiveEvent, setActiveEvent } from "../../actions/events";
+import {
+    clearActiveEvent,
+    getEventsAsync,
+    setActiveEvent,
+} from "../../actions/events";
 import { uiOpenModal } from "../../actions/ui";
+import { useEffect } from "react";
 
 moment.locale("es");
 const localizer = momentLocalizer(moment);
@@ -22,10 +27,14 @@ const localizer = momentLocalizer(moment);
 export const CalendarScreen = () => {
     const dispatch = useDispatch();
     const { events, activeEvent } = useSelector((state) => state.calendar);
-
+    const { uid } = useSelector((state) => state.auth);
     const [lastView, setLastView] = useState(
         localStorage.getItem("calendarLastView") || "month"
     );
+
+    useEffect(() => {
+        dispatch(getEventsAsync());
+    }, [dispatch]);
 
     const onViewChange = (e) => {
         setLastView(e);
@@ -44,11 +53,9 @@ export const CalendarScreen = () => {
         dispatch(clearActiveEvent());
 
         if (e?.action === "doubleClick" || e?.action === "select") {
-            console.log(e);
             const event = {
                 end: moment(e.end).toDate(),
-                id: new Date().getTime(),
-                note: "",
+                notes: "",
                 start: moment(e.start).toDate(),
                 title: "",
                 user: {
@@ -62,12 +69,12 @@ export const CalendarScreen = () => {
         }
     };
 
-    const eventStyleGetter = (/* event, start, end, isSelected*/) => {
+    const eventStyleGetter = (event) => {
         return {
             style: {
-                backgroundColor: "#18191a",
+                backgroundColor: uid === event.user.id ? "#18191a" : "red",
                 color: "#fff",
-                borderRadious: "0px",
+                borderRadius: "0px",
                 opacity: 0.8,
                 display: "block",
             },

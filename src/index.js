@@ -5,4 +5,6 @@ import { CalendarApp } from "./CalendarApp";
 
 import "./styles.scss";
 
+console.log(process.env);
+
 ReactDOM.render(<CalendarApp />, document.getElementById("root"));

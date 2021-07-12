@@ -9,9 +9,9 @@ import Swal from "sweetalert2";
 import moment from "moment";
 
 import {
-    addNewEvent,
+    addNewEventAsync,
     clearActiveEvent,
-    updateEvent,
+    updateEventAsync,
 } from "../../actions/events";
 import { modalCustomStyles } from "./CalendarModal.constants";
 import { uiCloseModal } from "../../actions/ui";
@@ -20,7 +20,7 @@ Modal.setAppElement("#root");
 
 const initFormValue = {
     title: "",
-    note: "",
+    notes: "",
     start: moment().seconds(0).minutes(0).toDate(),
     end: moment().seconds(0).minutes(0).add(1, "hours").toDate(),
 };
@@ -34,7 +34,7 @@ export const CalendarModal = () => {
 
     const [titleValid, setTitleValid] = useState(true);
 
-    const { title, note, start, end } = formValues;
+    const { title, notes, start, end } = formValues;
 
     useEffect(() => {
         const value = activeEvent || initFormValue;
@@ -63,7 +63,7 @@ export const CalendarModal = () => {
         if (momentStart.isSameOrAfter(momentEnd)) {
             return Swal.fire(
                 "Error",
-                "La fecha inicial debe ser mayor a la final",
+                "Init date is lower than end date",
                 "error"
             );
         }
@@ -72,20 +72,9 @@ export const CalendarModal = () => {
             return setTitleValid(false);
         }
 
-        if (activeEvent) {
-            dispatch(updateEvent(formValues));
-        } else {
-            dispatch(
-                addNewEvent({
-                    ...formValues,
-                    id: new Date().getTime(),
-                    user: {
-                        id: new Date().getTime(),
-                        name: "Mateo",
-                    },
-                })
-            );
-        }
+        activeEvent && activeEvent.id
+            ? dispatch(updateEventAsync(formValues))
+            : dispatch(addNewEventAsync(formValues));
 
         setTitleValid(true);
         setFormValues(initFormValue);
@@ -116,11 +105,11 @@ export const CalendarModal = () => {
                 className="modal"
                 overlayClassName="modal-bg"
             >
-                <h1> {activeEvent ? "Editar Evento" : "Nuevo evento"} </h1>
+                <h1> {activeEvent ? "Edit Event" : "New Event"} </h1>
                 <hr />
                 <form className="container" onSubmit={handleFormSubmit}>
                     <div className="form-group">
-                        <label>Fecha y hora inicio</label>
+                        <label>Stat Time</label>
                         <DateTimePicker
                             className="form-control"
                             onChange={handleStartDateChange}
@@ -129,7 +118,7 @@ export const CalendarModal = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Fecha y hora fin</label>
+                        <label>End Time</label>
                         <DateTimePicker
                             className="form-control"
                             onChange={handleEndDateChange}
@@ -140,20 +129,20 @@ export const CalendarModal = () => {
 
                     <hr />
                     <div className="form-group">
-                        <label>Titulo y notas</label>
+                        <label>Title and notes</label>
                         <input
                             type="text"
                             className={`form-control ${
                                 !titleValid && "is-invalid"
                             }`}
-                            placeholder="Título del evento"
+                            placeholder="title"
                             name="title"
                             autoComplete="off"
                             value={title}
                             onChange={handleInputChange}
                         />
                         <small id="emailHelp" className="form-text text-muted">
-                            Una descripción corta
+                            Short description
                         </small>
                     </div>
 
@@ -161,14 +150,14 @@ export const CalendarModal = () => {
                         <textarea
                             type="text"
                             className="form-control"
-                            placeholder="Notas"
+                            placeholder="Notes"
                             rows="5"
-                            name="note"
-                            value={note}
+                            name="notes"
+                            value={notes}
                             onChange={handleInputChange}
                         ></textarea>
                         <small id="emailHelp" className="form-text text-muted">
-                            Información adicional
+                            Additional information
                         </small>
                     </div>
 
@@ -177,7 +166,7 @@ export const CalendarModal = () => {
                         className="btn btn-outline-primary btn-block"
                     >
                         <i className="far fa-save"></i>
-                        <span> Guardar</span>
+                        <span> Save</span>
                     </button>
                 </form>
             </Modal>
